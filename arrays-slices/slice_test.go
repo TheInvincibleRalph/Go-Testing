@@ -1,6 +1,9 @@
 package array
 
-import "testing"
+import (
+	"reflect"
+	"testing"
+)
 
 func TestSum(t *testing.T) {
 	t.Run("collection of 10 numbers", func(t *testing.T) {
@@ -19,12 +22,32 @@ func TestSum(t *testing.T) {
 
 }
 
+func TestAll(t *testing.T) {
+
+	got := SumAll([]int{1, 2, 3, 4, 5}, []int{6, 7, 8, 9, 10})
+	want := []int{15, 40}
+
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("expected %v got %v", want, got)
+	}
+}
+
 func Sum(num []int) int {
 	result := 0
 	for _, numbers := range num {
 		result += numbers
 	}
 	return result
+}
+
+func SumAll(numsToSum ...[]int) []int {
+	var sums []int
+
+	for _, numbers := range numsToSum {
+		sums = append(sums, Sum(numbers))
+	}
+	return sums
+
 }
 
 func assert(t testing.TB, num []int, got, want int) {
