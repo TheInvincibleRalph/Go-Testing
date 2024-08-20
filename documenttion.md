@@ -278,3 +278,22 @@ func (repo *SQLUserRepository) GetUserByID(id int) (*User, error) {
 ### **Separation of Concerns**:
 - **Separating your domain code from the outside world** means keeping your core business logic isolated from code that deals with side-effects. This separation allows your domain code to remain clean, testable, and independent of external systems.
 - You can achieve this by using design patterns like **dependency injection**, **interfaces**, and **repositories**. These patterns allow your domain code to depend on abstractions (like interfaces) rather than concrete implementations (like a specific database).
+
+## Type-safe
+
+When a function is not type-safe, it means that it can accept and operate on values of different data types without strict enforcement by the compiler or runtime. This can lead to situations where you might inadvertently pass an incorrect type to the function, causing runtime errors or unexpected behavior when attempting to perform operations that are not valid for the given type(s).
+
+`reflect.DeepEqual`, for instance, is not type  safe:
+
+```go
+func TestAll(t *testing.T) {
+
+	got := SumAll([]int{1, 2, 3, 4, 5}, []int{6, 7, 8, 9, 10})
+	want := "gopher"
+
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("expected %v got %v", want, got)
+	}
+}
+```
+The code compiles (doesn't flag an error) but throws an error at runtime.
