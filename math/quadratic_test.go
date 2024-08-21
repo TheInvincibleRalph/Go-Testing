@@ -20,7 +20,7 @@ func TestRootofEqn(t *testing.T) {
 	want1, want2 := 1.0, 1.0
 
 	if got1 != want1 && got2 != want2 {
-		t.Errorf("expected %f and %f got %f and %f", want1, want2, got1, got2)
+		t.Errorf("expected %.2f and %.2f got %.2f and %.2f", want1, want2, got1, got2)
 	}
 }
 func main() {
