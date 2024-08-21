@@ -26,5 +26,5 @@ func TestRootofEqn(t *testing.T) {
 func main() {
 	root1, root2 := RootofEqn(1, -2, 1)
 
-	fmt.Printf("x is %f, y is %f", root1, root2)
+	fmt.Printf("x is %.2f, y is %.2f", root1, root2)
 }
