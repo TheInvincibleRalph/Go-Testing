@@ -297,3 +297,31 @@ func TestAll(t *testing.T) {
 }
 ```
 The code compiles (doesn't flag an error) but throws an error at runtime.
+
+## Value Receiver vs Pointer Receiver
+
+In Go, methods can have either value receivers or pointer receivers. The choice between them affects how the method interacts with the receiver and can have implications for performance and behavior.
+
+### Value Receiver
+
+- **Definition:** A method with a value receiver operates on a copy of the value it is called on.
+- **Usage:** Use value receivers when the method does not need to modify the receiver or when the receiver is a small, simple type.
+
+Example:
+```go
+func (r Rectangle) Area() float64 {
+    return r.Width * r.Height
+}
+```
+
+### Pointer Receiver
+- **Definition:** A method with a pointer receiver operates on the actual value it is called on, allowing the method to modify the receiver.
+- **Usage:** Use pointer receivers when the method needs to modify the receiver, or when the receiver is a large struct to avoid copying.
+
+Example:
+```go
+func (r *Rectangle) Scale(factor float64) {
+    r.Width *= factor
+    r.Height *= factor
+}
+```
