@@ -326,6 +326,28 @@ func (r *Rectangle) Scale(factor float64) {
 }
 ```
 
-### Dependency Injection
+## Dependency Injection
 
 Dependency Injection (DI) is a design pattern where an object or function's dependencies are provided (injected) by an external entity rather than the object or function creating the dependencies itself. The key idea behind DI is `to decouple the creation of dependencies from their usage`, making the code more modular, testable, and easier to maintain.
+
+### Function Parameters vs. Dependency Injection
+
+1. **Function Parameters (like in `Perimeter`)**:
+   - When you pass a `Rectangle` to the `Perimeter` function, you’re just passing data (not a functionality like in the case of DI). The `Rectangle` is already created or defined somewhere in your code, and the `Perimeter` function merely operates on this data. This is not dependency injection because the `Rectangle` is not a "dependency" in the sense of a service, resource, or component that the function relies on to operate. It’s simply an argument.
+
+```go
+   type Rectangle struct {
+    Width, Height float64
+}
+
+func (r Rectangle) Area() float64 {
+    return r.Width * r.Height
+}
+
+func (r Rectangle) Perimeter() float64 {
+    return 2 * (r.Width + r.Height)
+}
+```
+
+2. **Dependency Injection**:
+   - Dependency injection involves passing in **dependencies** that the function or struct needs to perform its tasks. These dependencies are typically objects, services, or interfaces that provide `specific functionality`, like logging, database access, or external services. The key point in DI is that the function or struct does not create these dependencies itself; they are injected from outside.
