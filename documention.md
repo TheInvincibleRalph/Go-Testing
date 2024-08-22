@@ -325,3 +325,7 @@ func (r *Rectangle) Scale(factor float64) {
     r.Height *= factor
 }
 ```
+
+### Dependency Injection
+
+Dependency Injection (DI) is a design pattern where an object or function's dependencies are provided (injected) by an external entity rather than the object or function creating the dependencies itself. The key idea behind DI is `to decouple the creation of dependencies from their usage`, making the code more modular, testable, and easier to maintain.
