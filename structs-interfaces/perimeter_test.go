@@ -36,19 +36,24 @@ func TestPerimeter(t *testing.T) {
 func TestArea(t *testing.T) {
 
 	areaTest := []struct {
-		shape Shape
-		want  float64
+		name    string
+		shape   Shape
+		hasArea float64
 	}{
-		{Rectangle{Width: 10.0, Height: 15.0}, 150.0},
-		{Circle{Radius: 10}, 314.1592653589793},
-		{Triangle{Base: 12, Height: 6}, 36},
+		{name: "Rectangle", shape: Rectangle{Width: 10.0, Height: 15.0}, hasArea: 150.0},
+		{name: "Circle", shape: Circle{Radius: 10}, hasArea: 314.1592653589793},
+		{name: "Triangle", shape: Triangle{Base: 12, Height: 6}, hasArea: 36},
 	}
 
 	for _, tt := range areaTest {
-		got := tt.shape.Area()
-		if got != tt.want {
-			t.Errorf("expected %g got %g", got, tt.want)
-		}
+		// using tt.name from the test cases as the t.Run test name
+		t.Run(tt.name, func(t *testing.T) {
+			got := tt.shape.Area()
+			if got != tt.hasArea {
+				t.Errorf("%#v expected %g got %g", tt.shape, got, tt.hasArea)
+			}
+		})
+
 	}
 
 	// checkArea := func(t testing.TB, shape Shape, want float64) {
@@ -94,3 +99,4 @@ func (t Triangle) Area() float64 {
 // functions that can be used with different types and create highly-decoupled code whilst still maintaining type-safety.
 
 // If a type does not implement an interface, it means that type is not associated with the methods defined within the interface.
+// Interfaces can be used or implemented by different types, as expressed in this package.
