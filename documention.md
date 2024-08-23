@@ -351,3 +351,11 @@ func (r Rectangle) Perimeter() float64 {
 
 2. **Dependency Injection**:
    - Dependency injection involves passing in **dependencies** that the function or struct needs to perform its tasks. These dependencies are typically objects, services, or interfaces that provide `specific functionality`, like logging, database access, or external services. The key point in DI is that the function or struct does not create these dependencies itself; they are injected from outside.
+
+### Creating custom (domain-specific) types from existing types:
+
+```go
+type Bitcoin int
+```
+
+This creates a type called `Bitcoin` from the existing type `int`. To make `Bitcoin` you just use the syntax `Bitcoin(999)`; this converts `999` to Bitcoin 
