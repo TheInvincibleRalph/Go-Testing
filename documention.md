@@ -360,7 +360,7 @@ type Bitcoin int
 
 This creates a type called `Bitcoin` from the existing type `int`. To make `Bitcoin` you just use the syntax `Bitcoin(999)`; this converts `999` to Bitcoin 
 
-### On the Stringer Interface
+### On the `Stringer` Interface
 
 ```go
 type Stringer interface {
@@ -375,3 +375,8 @@ func (b Bitcoin) String() string {
 }
 ```
 This ensures that `Bitcoin(10)`, the user-defined type, is returned as `10 BTC`
+
+
+### On `error.New` method
+
+`errors.New` creates a new `error` with a message of your choosing.
