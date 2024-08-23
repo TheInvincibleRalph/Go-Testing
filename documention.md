@@ -376,7 +376,17 @@ func (b Bitcoin) String() string {
 ```
 This ensures that `Bitcoin(10)`, the user-defined type, is returned as `10 BTC`
 
-
 ### On `error.New` method
 
 `errors.New` creates a new `error` with a message of your choosing.
+
+### Formatting verbs used:
+
+`%q`--adds quote to a returned string
+`%s`--for strings
+`%d`--for integers
+`%v`--for slices
+`%p`--prints memory addresses in base 16 notation with leading `0x`s
+`%#v`--print out struct with the values in its field
+`%f`--for float
+`%g`--prints more precise float decimals
