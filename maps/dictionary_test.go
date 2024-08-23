@@ -25,7 +25,7 @@ func TestSearch(t *testing.T) {
 			t.Fatal("expected to get an error.")
 		}
 
-		assertError(t, got, ErrNotFound) //the .Error() method gets the string in the err message
+		assertError(t, got, ErrNotFound)
 	})
 }
 
