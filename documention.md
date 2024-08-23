@@ -359,3 +359,19 @@ type Bitcoin int
 ```
 
 This creates a type called `Bitcoin` from the existing type `int`. To make `Bitcoin` you just use the syntax `Bitcoin(999)`; this converts `999` to Bitcoin 
+
+### On the Stringer Interface
+
+```go
+type Stringer interface {
+	String() string
+}
+```
+This interface is defined in the fmt package and lets you define how your (user-defined) type is printed when used with the `%s` format string in prints.
+
+```go
+func (b Bitcoin) String() string {
+	return fmt.Sprintf("%d BTC", b)
+}
+```
+This ensures that `Bitcoin(10)`, the user-defined type, is returned as `10 BTC`
