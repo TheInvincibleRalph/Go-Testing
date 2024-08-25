@@ -512,7 +512,7 @@ func main() {
 - **Concrete Types** are actual implementations with specific data and methods. They define how something is structured and how it behaves.
 - **Interface Types** define a set of behaviors (methods) without specifying how those behaviors are implemented. They allow different concrete types to be treated uniformly based on shared behavior.
 
-]
+
 
 
 
