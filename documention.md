@@ -1,5 +1,7 @@
 # Testing Terminologies
 
+## TEST DOUBLES (Stub, fake, spies, dummy, mock)
+
 ## Stub
 
 A **stub** is a type of test double that provides predefined responses to method calls. It is commonly used when you want to test the behavior of a function that relies on an external dependency but do not care about the specifics of that dependency's behavior. Instead, you focus on the response needed to drive the test.
@@ -367,6 +369,77 @@ func TestGetBookDetails(t *testing.T) {
    - **Test Case 2 (Book Does Not Exist)**:
      - We call `GetBookDetails(repo, "2")` to try to retrieve a book with ID `"2"`, which was not added to the fake.
      - We check that an error is returned, indicating the book was not found.
+
+
+## Spies
+
+**Spies** are a type of test double used in unit testing to verify interactions between components. They are used to check whether certain methods or functions have been called, with what arguments, how many times, and in what order. In Go, spies are typically implemented using custom types or functions that conform to specific interfaces and record relevant data for assertions.
+
+### How Spies Work in Go
+
+1. **Recording Behavior**: Spies keep track of method calls, including the number of times a method was called, the arguments it was called with, and possibly other information like return values.
+
+2. **Verifying Interactions**: After running the test, spies allow you to assert whether the expected interactions occurred. For example, you can verify if a function was called the correct number of times or with the correct arguments.
+
+3. **Non-Intrusive**: Spies in Go often do not change the original behavior of the code under test. Instead, they capture interactions, making them less intrusive than mocks, which may require predefined behavior.
+
+### Example of Using Spies in Go
+
+Let's consider a scenario where we have a `Notifier` interface, and we want to test a function that depends on this interface. We'll create a spy that implements the `Notifier` interface to verify that certain methods are called as expected.
+
+#### Step 1: Define the Interface
+
+```go
+type Notifier interface {
+    Notify(message string)
+}
+```
+
+#### Step 2: Implement the Spy
+
+```go
+type SpyNotifier struct {
+    Calls []string // To store the messages passed to Notify
+}
+
+func (s *SpyNotifier) Notify(message string) {
+    s.Calls = append(s.Calls, message) // Record the message
+}
+```
+
+#### Step 3: Use the Spy in a Test
+
+```go
+func TestNotifyUser(t *testing.T) {
+    spy := &SpyNotifier{}
+    NotifyUser(spy, "Hello, World!")
+
+    if len(spy.Calls) != 1 {
+        t.Errorf("expected 1 call to Notify, but got %d", len(spy.Calls))
+    }
+
+    if spy.Calls[0] != "Hello, World!" {
+        t.Errorf("expected 'Hello, World!' but got '%s'", spy.Calls[0])
+    }
+}
+```
+
+In this example:
+
+- `SpyNotifier` implements the `Notifier` interface and records any calls to `Notify`.
+- The test function `TestNotifyUser` verifies that the `Notify` method is called exactly once and with the correct message.
+
+### Significance of Spies in Go Testing
+
+1. **Verifying Side Effects**: Spies are useful for testing the side effects of a function. For instance, you can verify that a logging function was called correctly without needing to inspect the log files.
+
+2. **Testing Behavior, Not State**: While traditional tests often check the state of an object after a function runs, spies allow you to verify that the correct behavior occurred. This is useful when testing functions that interact with other systems or components.
+
+3. **Ensuring Correct Function Interactions**: Spies can ensure that functions interact with their dependencies as expected. For example, if a function is supposed to send a notification under certain conditions, a spy can confirm that the notification method is called with the right arguments.
+
+4. **Isolation**: By using spies, you can isolate the function under test from its dependencies. This means that the test only fails if the function itself is incorrect, not because of the behavior of its dependencies.
+
+5. **Improved Test Coverage**: Spies allow for more detailed testing of interactions, which can lead to better coverage of edge cases and a deeper understanding of how functions behave under various conditions.
 
 
 
