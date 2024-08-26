@@ -26,11 +26,10 @@ func TestGreet(t *testing.T) {
 // fmt.Fprintf is like fmt.Printf but instead takes a Writer to send the string to, whereas fmt.Printf defaults to stdout.
 // Dependency injection allows to write great general-purpose functions
 // In "real life" you would inject in something that writes to stdout. But in test, you write to a anything that implements the Writer interface
-// REMEMBER: A Writer is written TO while a Reader is read FROM (WT-RF)
+// REMEMBER: A Writer is WRITTEN TO while a Reader is READ FROM (WT-RF)
 // When you use a Writer, you are passing data to it, and it writes that data to its underlying destination.
 
 /*
-
 	type Writer interface {
     Write(p []byte) (n int, err error)
 }
