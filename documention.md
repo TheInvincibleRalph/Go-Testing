@@ -1,13 +1,373 @@
 # Testing Terminologies
 
 ## Stub
-A stub typically provides hardcoded or predefined responses for specific method calls. It’s very simple and often used to isolate parts of the system in tests. The purpose of a stub is to provide controlled and predictable responses for testing, not to maintain state or handle complex logic.
+
+A **stub** is a type of test double that provides predefined responses to method calls. It is commonly used when you want to test the behavior of a function that relies on an external dependency but do not care about the specifics of that dependency's behavior. Instead, you focus on the response needed to drive the test.
+
+### Example Scenario
+
+Let's say we have an application that checks if a user exists in a database before sending a welcome email. We want to test the function that checks the user's existence, but without actually connecting to a real database. Instead, we can use a stub that simulates the behavior of the database.
+
+### Go Code Example Using a Stub
+
+1. **Define the Interface**
+
+   First, define an interface that represents the dependency, such as a database:
+
+   ```go
+   type UserRepository interface {
+       UserExists(username string) bool
+   }
+   ```
+
+   Here, `UserRepository` has a single method `UserExists` which checks if a user exists in the database.
+
+2. **Define the Function to be Tested**
+
+   Now, define a function that uses the `UserRepository` interface:
+
+   ```go
+   func SendWelcomeEmail(repo UserRepository, username string) string {
+       if repo.UserExists(username) {
+           return "User already exists. No email sent."
+       }
+       return "Welcome email sent to " + username
+   }
+   ```
+
+   This function checks if the user exists. If the user does exist, it returns a message indicating no email was sent. Otherwise, it sends a welcome email.
+
+3. **Create a Stub**
+
+   Next, create a stub that implements the `UserRepository` interface. The stub will provide a predefined response to the `UserExists` method:
+
+   ```go
+   type UserRepositoryStub struct {
+       ExistingUsers map[string]bool
+   }
+
+   func (stub *UserRepositoryStub) UserExists(username string) bool {
+       // Simulate checking if a user exists by returning a predefined response
+       exists, ok := stub.ExistingUsers[username]
+       return ok && exists
+   }
+   ```
+
+   The `UserRepositoryStub` struct contains a map of usernames to simulate the existing users. The `UserExists` method checks this map to determine if the user exists.
+
+4. **Write the Test Case**
+
+   Now, use the stub in a test case to verify the behavior of `SendWelcomeEmail`:
+
+   ```go
+   package main
+
+   import "testing"
+
+   func TestSendWelcomeEmail(t *testing.T) {
+       // Create a stub with predefined existing users
+       stub := &UserRepositoryStub{
+           ExistingUsers: map[string]bool{
+               "existingUser": true,
+           },
+       }
+
+       // Test case where the user already exists
+       result := SendWelcomeEmail(stub, "existingUser")
+       expected := "User already exists. No email sent."
+       if result != expected {
+           t.Errorf("expected %s but got %s", expected, result)
+       }
+
+       // Test case where the user does not exist
+       result = SendWelcomeEmail(stub, "newUser")
+       expected = "Welcome email sent to newUser"
+       if result != expected {
+           t.Errorf("expected %s but got %s", expected, result)
+       }
+   }
+   ```
+
+### Explanation
+
+1. **Interface and Function**: We define a `UserRepository` interface and a `SendWelcomeEmail` function that relies on this interface. The function checks if a user exists using the interface.
+
+2. **Stub Implementation**: The `UserRepositoryStub` struct implements the `UserRepository` interface. It contains a map to simulate existing users. The `UserExists` method uses this map to provide a predefined response.
+
+3. **Test Case**: The test creates an instance of `UserRepositoryStub` with some predefined users. It then calls `SendWelcomeEmail` to verify that the function behaves correctly depending on whether the user exists.
+
+### Benefits of Using a Stub
+
+- **Isolation**: The `SendWelcomeEmail` function can be tested independently of the real database.
+- **Control**: You can control the responses from `UserExists` to test various scenarios.
+- **Speed**: Tests run faster because they do not rely on actual database calls.
+- **Predictability**: By using predefined responses, the test outcomes are predictable and reliable.
 
 Style
 Mocks vs Stubs = Behavioral testing vs State testing
 
 Principle
 According to the principle of Test only one thing per test, there may be several stubs in one test, but generally there is only one mock.
+
+## Fakes 
+
+Fakes are a powerful type of test double that simulate the behavior of real components by maintaining some form of internal state. They provide a more realistic environment for testing than stubs because they can handle multiple interactions and keep track of state changes, similar to what happens in a production environment.
+
+### Detailed Example of Using Fakes
+
+Let's consider an example of an online bookstore where we need to interact with a database to manage books. We'll create a fake that simulates a real database by keeping a list of books in memory. This fake will allow us to perform operations like adding, retrieving, and deleting books.
+
+#### 1. Define the Interface
+
+We'll start by defining an interface that represents our book repository. This interface will declare the methods that our fake (and real) repository needs to implement.
+
+```go
+package main
+
+type Book struct {
+    ID     string
+    Title  string
+    Author string
+}
+
+type BookRepository interface {
+    AddBook(book Book) error
+    GetBook(id string) (*Book, error)
+    DeleteBook(id string) error
+}
+```
+
+- The `BookRepository` interface declares three methods: `AddBook`, `GetBook`, and `DeleteBook`.
+- The `Book` struct represents a book entity with an ID, title, and author.
+
+#### 2. Implement the Fake
+
+Now, we will implement a fake that adheres to the `BookRepository` interface. This fake will store books in memory using a map, simulating a database.
+
+```go
+package main
+
+import (
+    "errors"
+    "fmt"
+)
+
+// BookRepositoryFake is a fake implementation of the BookRepository interface.
+type BookRepositoryFake struct {
+    books map[string]Book // In-memory store to hold books
+}
+
+// NewBookRepositoryFake initializes a new fake book repository.
+func NewBookRepositoryFake() *BookRepositoryFake {
+    return &BookRepositoryFake{
+        books: make(map[string]Book),
+    }
+}
+
+// AddBook adds a book to the fake repository.
+func (repo *BookRepositoryFake) AddBook(book Book) error {
+    if _, exists := repo.books[book.ID]; exists {
+        return errors.New("book already exists")
+    }
+    repo.books[book.ID] = book
+    return nil
+}
+
+// GetBook retrieves a book from the fake repository by ID.
+func (repo *BookRepositoryFake) GetBook(id string) (*Book, error) {
+    book, exists := repo.books[id]
+    if !exists {
+        return nil, errors.New("book not found")
+    }
+    return &book, nil
+}
+
+// DeleteBook removes a book from the fake repository by ID.
+func (repo *BookRepositoryFake) DeleteBook(id string) error {
+    if _, exists := repo.books[id]; !exists {
+        return errors.New("book not found")
+    }
+    delete(repo.books, id)
+    return nil
+}
+```
+
+- `BookRepositoryFake` is a struct that implements the `BookRepository` interface.
+- It uses a map (`books map[string]Book`) to store books in memory, simulating a database.
+- Methods like `AddBook`, `GetBook`, and `DeleteBook` manipulate this in-memory map, providing a realistic way to interact with a "database."
+
+#### 3. Example Usage of the Fake
+
+Let's create some functions to interact with the `BookRepositoryFake` and write a test to demonstrate how this fake maintains state.
+
+```go
+package main
+
+import (
+    "fmt"
+)
+
+func main() {
+    // Create a new fake repository
+    repo := NewBookRepositoryFake()
+
+    // Add a book
+    book1 := Book{ID: "1", Title: "1984", Author: "George Orwell"}
+    err := repo.AddBook(book1)
+    if err != nil {
+        fmt.Println("Error:", err)
+    }
+
+    // Try to add the same book again
+    err = repo.AddBook(book1)
+    if err != nil {
+        fmt.Println("Error:", err) // Expected: "book already exists"
+    }
+
+    // Retrieve the book
+    retrievedBook, err := repo.GetBook("1")
+    if err != nil {
+        fmt.Println("Error:", err)
+    } else {
+        fmt.Printf("Retrieved Book: %+v\n", *retrievedBook)
+    }
+
+    // Delete the book
+    err = repo.DeleteBook("1")
+    if err != nil {
+        fmt.Println("Error:", err)
+    }
+
+    // Try to retrieve the deleted book
+    retrievedBook, err = repo.GetBook("1")
+    if err != nil {
+        fmt.Println("Error:", err) // Expected: "book not found"
+    }
+}
+```
+
+#### Explanation
+
+1. **Initialization**: `NewBookRepositoryFake()` initializes a new instance of the fake book repository. It creates an empty map to store books.
+
+2. **Adding a Book**: The `AddBook` method adds a book to the map. If the book already exists (i.e., the ID is already a key in the map), it returns an error.
+
+3. **Retrieving a Book**: The `GetBook` method looks up a book by its ID in the map. If the book is found, it returns a pointer to the `Book` struct; otherwise, it returns an error.
+
+4. **Deleting a Book**: The `DeleteBook` method deletes a book from the map using its ID. If the book is not found, it returns an error.
+
+#### Why Fakes are Useful
+
+- **State Management**: Fakes maintain state. In this example, the `BookRepositoryFake` keeps track of books that are added, retrieved, and deleted. This allows you to test interactions that depend on previous operations (e.g., checking that a book can be retrieved only if it was added first).
+
+- **Realistic Simulation**: Fakes provide a more realistic simulation of how your application interacts with external systems. This is especially useful in integration tests where the interaction with components (like databases) needs to be close to reality.
+
+- **Isolated Testing**: You can test business logic without depending on a real database connection. This makes tests faster and more reliable because they are not subject to the availability or state of external systems.
+
+
+### Fakes when used in testing
+
+```go
+// BookRepositoryFake is a fake implementation of the BookRepository interface.
+type BookRepositoryFake struct {
+    books map[string]Book // In-memory store to hold books
+}
+
+// NewBookRepositoryFake initializes a new fake book repository.
+func NewBookRepositoryFake() *BookRepositoryFake {
+    return &BookRepositoryFake{
+        books: make(map[string]Book),
+    }
+}
+```
+
+### Scenario
+
+Suppose you have a function in your application that checks if a book exists in the inventory and returns its details if it does. You want to write tests for this function using the `BookRepositoryFake` to simulate the database.
+
+### Test function
+
+Here’s a function that checks if a book exists in the repository and retrieves it:
+
+```go
+package main
+
+import (
+    "fmt"
+)
+
+// GetBookDetails checks if a book exists by its ID and returns the details.
+func GetBookDetails(repo BookRepository, id string) (string, error) {
+    book, err := repo.GetBook(id)
+    if err != nil {
+        return "", err
+    }
+    return fmt.Sprintf("Title: %s, Author: %s", book.Title, book.Author), nil
+}
+```
+
+### Writing Tests Using Fakes
+
+We’ll use Go’s testing package to write unit tests for the `GetBookDetails` function. The `BookRepositoryFake` will act as a stand-in for the real database.
+
+1. **Test Setup**: Initialize a new `BookRepositoryFake` and populate it with some test data.
+2. **Test Execution**: Call `GetBookDetails` with different scenarios (book exists, book does not exist).
+3. **Assertions**: Check the results to see if they match the expected outcomes.
+
+### Test Code
+
+```go
+package main
+
+import (
+    "testing"
+)
+
+func TestGetBookDetails(t *testing.T) {
+    // Initialize the fake repository
+    repo := NewBookRepositoryFake()
+
+    // Add a book to the fake repository
+    book := Book{ID: "1", Title: "1984", Author: "George Orwell"}
+    err := repo.AddBook(book)
+    if err != nil {
+        t.Fatalf("failed to add book: %v", err)
+    }
+
+    // Test: Retrieve existing book details
+    result, err := GetBookDetails(repo, "1")
+    if err != nil {
+        t.Errorf("expected no error, but got %v", err)
+    }
+    expected := "Title: 1984, Author: George Orwell"
+    if result != expected {
+        t.Errorf("expected '%s', but got '%s'", expected, result)
+    }
+
+    // Test: Retrieve non-existing book details
+    _, err = GetBookDetails(repo, "2")
+    if err == nil {
+        t.Errorf("expected error for non-existing book, but got none")
+    }
+}
+```
+
+### Explanation of the Test Code
+
+1. **Test Setup**:
+   - `repo := NewBookRepositoryFake()`: Creates a new instance of `BookRepositoryFake`. This is an in-memory store that will hold our test data.
+   - `repo.AddBook(book)`: Adds a book to the fake repository. This simulates having a book already stored in a real database.
+
+2. **Test Execution and Assertions**:
+   - **Test Case 1 (Book Exists)**:
+     - We call `GetBookDetails(repo, "1")` to retrieve the details of the book with ID `"1"`.
+     - We check if the returned details match the expected string.
+     - We also check that no error is returned.
+   
+   - **Test Case 2 (Book Does Not Exist)**:
+     - We call `GetBookDetails(repo, "2")` to try to retrieve a book with ID `"2"`, which was not added to the fake.
+     - We check that an error is returned, indicating the book was not found.
+
 
 
 ### 1. **State**
