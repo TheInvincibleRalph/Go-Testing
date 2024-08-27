@@ -6,15 +6,15 @@ import (
 	"testing"
 )
 
-type SpyCountDownOperations struct {
+type SpyCountDownOperations struct { //stores how many times each spies are called
 	Calls []string
 }
 
-func (s *SpyCountDownOperations) Sleep() {
+func (s *SpyCountDownOperations) Sleep() { //spies on the sleep operation of Countdown
 	s.Calls = append(s.Calls, sleep)
 }
 
-func (s *SpyCountDownOperations) Write(p []byte) (n int, err error) {
+func (s *SpyCountDownOperations) Write(p []byte) (n int, err error) { //spies on the main countdown logic
 	s.Calls = append(s.Calls, write)
 	return
 }
