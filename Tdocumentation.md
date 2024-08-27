@@ -1,4 +1,4 @@
-# Documentation starting from Turorial 11: Concurrency
+# Documentation starting from Tutorial 11: Concurrency
 
 ## On Goroutines and Anonymous functions
 
