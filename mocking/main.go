@@ -10,6 +10,7 @@ import (
 const finalWord = "Go!"
 const countdownStart = 3
 
+// Default sleeper
 type DefaultSleeper struct{}
 
 type Sleeper interface {
@@ -18,6 +19,16 @@ type Sleeper interface {
 
 func (d *DefaultSleeper) Sleep() {
 	time.Sleep(1 * time.Second)
+}
+
+// Configurable sleeper
+type ConfigurableSleeper struct {
+	duration time.Duration
+	sleep    func(time.Duration)
+}
+
+func (c *ConfigurableSleeper) Sleep() {
+	c.sleep(c.duration)
 }
 
 func Countdown(out io.Writer, sleeper Sleeper) { //injects the Sleeper interface to make our code testable (and predictable, meaning we can decide the behaviour of the function)
@@ -38,6 +49,13 @@ func main() {
 	sleeper := &DefaultSleeper{}
 	Countdown(os.Stdout, sleeper)
 }
+
+// Main for configurable sleeper:
+
+// func main() {
+// 	sleeper := &ConfigurableSleeper{1 * time.Second, time.Sleep}
+// 	Countdown(os.Stdout, sleeper)
+// }
 
 // The hallmark of this code is Separation of Concern (SoC),
 // the external Sleep method was separated from the main function so that it can be injected as a dependency.

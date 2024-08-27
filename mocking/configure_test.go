@@ -9,19 +9,15 @@ type SpyTime struct {
 	durationSlept time.Duration
 }
 
-type ConfigurableSleeper struct {
-	duration time.Duration
-	sleep    func(time.Duration)
-}
-
-func (c *ConfigurableSleeper) Sleep() {
-	c.sleep(c.duration)
-}
-
+// The Sleep method sets the durationSlept field
+// to the duration passed as an argument.
+// Instead of actually sleeping (like time.Sleep would),
+// it just records the duration.
 func (s *SpyTime) Sleep(duration time.Duration) {
 	s.durationSlept = duration
 }
 
+// This is a test function that verifies the behavior of ConfigurableSleeper
 func TestConfigurableSleeper(t *testing.T) {
 	sleepTime := 5 * time.Second
 
@@ -33,8 +29,3 @@ func TestConfigurableSleeper(t *testing.T) {
 		t.Errorf("should have slept for %v but slept for %v", sleepTime, spyTime.durationSlept)
 	}
 }
-
-// func main() {
-// 	sleeper := &ConfigurableSleeper{1 * time.Second, time.Sleep}
-// 	Countdown(os.Stdout, sleeper)
-// }
