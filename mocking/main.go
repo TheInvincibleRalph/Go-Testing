@@ -33,12 +33,8 @@ func (c *ConfigurableSleeper) Sleep() {
 
 func Countdown(out io.Writer, sleeper Sleeper) { //injects the Sleeper interface to make our code testable (and predictable, meaning we can decide the behaviour of the function)
 	for i := countdownStart; i > 0; i-- {
-		// fmt.Fprintln(out, i)
-		sleeper.Sleep()
-	}
-
-	for i := countdownStart; i > 0; i-- {
 		fmt.Fprintln(out, i)
+		sleeper.Sleep()
 	}
 
 	fmt.Fprint(out, finalWord)
