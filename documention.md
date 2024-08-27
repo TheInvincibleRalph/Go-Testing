@@ -1101,3 +1101,4 @@ In the context of programming, **side effects** refer to any observable changes 
 - **Pure Functions**: Whenever possible, write pure functions that do not have side effects. This makes your code more predictable and easier to test.
 
 - **Explicit Interfaces**: Clearly define interfaces that separate pure logic from functions that handle side effects. For example, use an interface for a logger, so you can inject a no-op logger in tests to avoid actual I/O operations.
+
