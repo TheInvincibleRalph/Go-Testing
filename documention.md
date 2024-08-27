@@ -111,6 +111,8 @@ Mocks vs Stubs = Behavioral testing vs State testing
 Principle
 According to the principle of Test only one thing per test, there may be several stubs in one test, but generally there is only one mock.
 
+---
+
 ## Fakes 
 
 Fakes are a powerful type of test double that simulate the behavior of real components by maintaining some form of internal state. They provide a more realistic environment for testing than stubs because they can handle multiple interactions and keep track of state changes, similar to what happens in a production environment.
@@ -370,6 +372,7 @@ func TestGetBookDetails(t *testing.T) {
      - We call `GetBookDetails(repo, "2")` to try to retrieve a book with ID `"2"`, which was not added to the fake.
      - We check that an error is returned, indicating the book was not found.
 
+---
 
 ## Spies
 
@@ -440,7 +443,6 @@ In this example:
 4. **Isolation**: By using spies, you can isolate the function under test from its dependencies. This means that the test only fails if the function itself is incorrect, not because of the behavior of its dependencies.
 
 5. **Improved Test Coverage**: Spies allow for more detailed testing of interactions, which can lead to better coverage of edge cases and a deeper understanding of how functions behave under various conditions.
-
 
 
 ### 1. **State**
@@ -657,6 +659,7 @@ func TestShoppingCart(t *testing.T) {
 > **Extras**
 > *The HandlerFunc type is an adapter to allow the use of ordinary functions as HTTP handlers. If f is a function with the appropriate signature, HandlerFunc(f) is a Handler that calls f.*
 
+---
 
 ## Interface Implementation
 
@@ -697,6 +700,7 @@ func (repo *SQLUserRepository) GetUserByID(id int) (*User, error) {
     return &user, nil
 }
 ```
+---
 
 ## Domain-Driven Architecture (Domain-from-Side-effect theory)
 
@@ -711,6 +715,8 @@ func (repo *SQLUserRepository) GetUserByID(id int) (*User, error) {
 ### **Separation of Concerns**:
 - **Separating your domain code from the outside world** means keeping your core business logic isolated from code that deals with side-effects. This separation allows your domain code to remain clean, testable, and independent of external systems.
 - You can achieve this by using design patterns like **dependency injection**, **interfaces**, and **repositories**. These patterns allow your domain code to depend on abstractions (like interfaces) rather than concrete implementations (like a specific database).
+
+---
 
 ## Type-safe
 
@@ -758,6 +764,7 @@ func (r *Rectangle) Scale(factor float64) {
     r.Height *= factor
 }
 ```
+---
 
 ## Dependency Injection
 
@@ -813,6 +820,7 @@ This ensures that `Bitcoin(10)`, the user-defined type, is returned as `10 BTC`
 
 `errors.New` creates a new `error` with a message of your choosing.
 
+---
 ### Formatting verbs used:
 
 - `%q`--adds quote to a returned string
@@ -823,10 +831,11 @@ This ensures that `Bitcoin(10)`, the user-defined type, is returned as `10 BTC`
 - `%#v`--print out struct with the values in its field
 - `%f`--for float
 - `%g`--prints more precise float decimals
-
+---
 
 > the `.Error()` method when called on a variable gets and returns the string in that variable
 
+---
 
 In Go, understanding the distinction between **interface types** and **concrete types** is fundamental for leveraging Go's type system effectively, especially when it comes to polymorphism and designing flexible APIs.
 
@@ -945,7 +954,150 @@ func main() {
 - **Concrete Types** are actual implementations with specific data and methods. They define how something is structured and how it behaves.
 - **Interface Types** define a set of behaviors (methods) without specifying how those behaviors are implemented. They allow different concrete types to be treated uniformly based on shared behavior.
 
+---
 
+## The Single Responsibility Principle (SRP) and Seperation of Concern (SoC)
 
+> Ref: `mocking/main.go` and `mocking/mocking_test.go`
 
+Separating from specific implementations, like the sleep behavior in your `Countdown` example, is important for several reasons. These revolve around making the codebase more flexible, maintainable, and testable. Here’s why this separation is beneficial:
 
+### 1. **Testability and Faster Tests**
+
+- **Problem without Separation**: If your code directly uses a specific implementation like `time.Sleep(1 * time.Second)`, it introduces real time delays into your tests. This makes tests slow, which is problematic when you need to run them frequently during development.
+
+- **Solution with Separation**: By separating the sleep behavior into an interface (`Sleeper`), you can inject a mock or a fake implementation during testing. For example, a `SpySleeper` that does nothing but record calls can be used. This way, your tests can run instantly without actual waiting:
+
+    ```go
+    type SpySleeper struct {
+        Calls int
+    }
+
+    func (s *SpySleeper) Sleep() {
+        s.Calls++
+    }
+    ```
+
+This allows you to verify that the `Sleep()` method was called the expected number of times without introducing unnecessary delays.
+
+### 2. **Decoupling for Flexibility**
+
+- **Problem without Separation**: When your code is tightly coupled to a specific implementation, such as directly calling `time.Sleep()`, it becomes rigid. Changing how the sleep behavior works (e.g., to use a different timing mechanism or to add logging) would require modifying the code that uses it.
+
+- **Solution with Separation**: By defining an interface and using dependency injection, you can easily swap out the implementation. This makes the code more flexible and adaptable to change. For instance, if you need a different `Sleeper` that logs every sleep action for debugging purposes, you can simply create a new type:
+
+    ```go
+    type LoggingSleeper struct{}
+
+    func (l *LoggingSleeper) Sleep() {
+        fmt.Println("Sleeping...")
+        time.Sleep(1 * time.Second)
+    }
+    ```
+
+Now, you can inject `LoggingSleeper` wherever you need it, without changing the core logic of `Countdown`.
+
+### 3. **Enhanced Maintainability**
+
+- **Problem without Separation**: Tightly coupled code is harder to maintain and understand. If the sleep logic is embedded within the main function logic, any changes to the sleep behavior would require touching the main function code. This increases the risk of bugs and makes the code less modular.
+
+- **Solution with Separation**: When behavior is encapsulated in separate implementations that adhere to an interface, you can update or replace these implementations without affecting other parts of the codebase. It keeps the code modular and the responsibilities clearly defined, leading to easier maintenance.
+
+### 4. **Promoting Reusability**
+
+- **Problem without Separation**: If sleep behavior is not separated, any other part of the application that needs to sleep will have to duplicate the logic or rely on copying and pasting code. This results in code duplication and potential inconsistencies.
+
+- **Solution with Separation**: By using an interface, you can define a `Sleeper` type once and reuse it across different parts of your application. This promotes code reuse and consistency. For instance, both a `Countdown` function and another function that simulates delays can use the same `Sleeper` interface without duplicating code.
+
+### 5. **Better Abstraction and Clean Code Principles**
+
+- **Problem without Separation**: Code that handles multiple responsibilities can become complex and harder to understand. If your `Countdown` function handles both the countdown logic and the specific sleep behavior, it violates the Single Responsibility Principle (SRP).
+
+- **Solution with Separation**: Separating the sleep behavior into its own component adheres to clean code principles. Each part of the code has a clear, distinct role. The `Countdown` function focuses solely on counting down, while the `Sleeper` interface and its implementations manage sleeping.
+
+### 6. **Easier to Mock and Spy for Behavior Verification**
+
+- **Problem without Separation**: Without the ability to inject different implementations, it's hard to verify certain behaviors. For instance, how do you confirm that your countdown logic properly waits for each second to pass if you're directly calling `time.Sleep()`?
+
+- **Solution with Separation**: Using a `SpySleeper` allows you to verify that `Sleep()` is called the expected number of times. You can inspect the internal state of the spy to assert that behavior is as expected, which is crucial for reliable testing.
+
+---
+
+## Side-effects
+
+In the context of programming, **side effects** refer to any observable changes or interactions a function or expression has with the outside world, beyond returning a value. These changes can include modifications to variables or data structures outside the function's scope, I/O operations (like printing to the console, writing to a file, or making network requests), or altering the state of a system in any other way.
+
+### Examples of Side Effects
+
+1. **Modifying Global or External State**: A function that changes a global variable or modifies the state of an object that exists outside its local scope introduces a side effect.
+
+    ```go
+    var counter int
+
+    func incrementCounter() {
+        counter++ // Modifying a global variable
+    }
+    ```
+
+    Here, `incrementCounter()` has a side effect because it changes the value of the global variable `counter`.
+
+2. **I/O Operations**: Functions that perform input/output operations such as printing to the console, writing to a file, or reading user input have side effects.
+
+    ```go
+    func greetUser(name string) {
+        fmt.Printf("Hello, %s!\n", name) // Output to console
+    }
+    ```
+
+    The call to `fmt.Printf` is a side effect because it changes the program's output to the console.
+
+3. **Network Requests**: Functions that make network requests, such as sending HTTP requests or connecting to a database, produce side effects by interacting with external systems.
+
+    ```go
+    func sendMessage(url string, message string) error {
+        _, err := http.Post(url, "application/json", strings.NewReader(message))
+        return err
+    }
+    ```
+
+    This function has a side effect because it sends data over the network.
+
+4. **Mutating Input Arguments**: If a function changes the content of its input arguments (assuming they are pointers or references), it has a side effect.
+
+    ```go
+    func updateValue(val *int) {
+        *val = 10 // Modifying the value at the pointer address
+    }
+    ```
+
+    Here, `updateValue` modifies the value that the pointer `val` points to, creating a side effect.
+
+5. **Modifying Data Structures**: A function that alters a data structure passed to it also introduces side effects.
+
+    ```go
+    func addElement(slice *[]int, element int) {
+        *slice = append(*slice, element) // Modifying the slice
+    }
+    ```
+
+    This function modifies the slice that is passed to it, leading to a side effect.
+
+### Why Are Side Effects Important?
+
+1. **Predictability and Debugging**: Functions without side effects (pure functions) are easier to predict, understand, and test. If a function depends only on its input arguments and has no side effects, it will always produce the same output for the same input, which simplifies debugging and reasoning about code.
+
+2. **Testing and Test Isolation**: Side effects can make functions harder to test. If a function modifies global state, interacts with the file system, or depends on external systems, you need to set up and clean up these states during testing, which can complicate test cases.
+
+3. **Concurrency Issues**: Side effects can lead to concurrency problems like race conditions. When multiple threads or routines modify shared state simultaneously, it can cause unpredictable behavior and bugs.
+
+4. **Functional Programming Principles**: Many functional programming paradigms emphasize writing pure functions that do not have side effects. This approach promotes immutability, makes code more modular, and reduces unintended interactions between different parts of a program.
+
+### Managing Side Effects
+
+- **Encapsulation**: Encapsulate side effects within specific parts of your codebase. For instance, use service layers to handle external interactions (e.g., database access or network calls), keeping core logic free of side effects.
+
+- **Dependency Injection**: Use dependency injection to control side effects. Inject dependencies like loggers, database connections, or network clients, so you can substitute them with mock implementations during testing.
+
+- **Pure Functions**: Whenever possible, write pure functions that do not have side effects. This makes your code more predictable and easier to test.
+
+- **Explicit Interfaces**: Clearly define interfaces that separate pure logic from functions that handle side effects. For example, use an interface for a logger, so you can inject a no-op logger in tests to avoid actual I/O operations.
