@@ -104,3 +104,33 @@ func CheckWebsites(wc WebsiteChecker, urls []string) map[string]bool {
 - `httptest.NewServer` takes an `http.HandlerFunc`
 
 - `w.WriteHeader(http.StatusOK)` writes an `OK` response back to the caller
+
+---
+
+## Empty Struct (`struct{}`) and Memory Allocation
+
+1. **What is `struct{}`?**
+   - In Go, `struct{}` represents an **empty struct** type. It has no fields, which means it occupies zero bytes of memory. 
+   - It’s the smallest possible data type in Go. Unlike other types, such as `bool`, `int`, or `string`, which require some memory allocation, `struct{}` is truly zero-sized.
+
+2. **Memory Efficiency:**
+   - **Zero Allocation:** The primary reason for using `struct{}` over other types is its zero allocation characteristic. It doesn't take up any space in memory. When you use a `chan struct{}`, sending and receiving operations don’t actually transfer any data, which means no memory needs to be allocated or freed.
+   - **Minimal Overhead:** When working with concurrency, minimizing overhead is crucial. Since `struct{}` has no fields, there’s no unnecessary allocation or copying involved. This makes it very efficient for signaling or synchronization purposes.
+
+3. **Signaling with Channels:**
+   - In Go, channels are often used for signaling purposes, such as to notify when a goroutine should stop or when an event has occurred. In these cases, the data being sent is often irrelevant; only the occurrence of the event matters.
+   - Using `chan struct{}` in such cases indicates that the channel is used purely for signaling. The only concern is whether a signal has been received, not the content of the signal. This is a clear, idiomatic way to express that no data is needed.
+
+4. **Comparison with Other Types:**
+   - **`chan bool`:** A boolean channel could be used to send a true or false signal. However, a boolean value still requires memory allocation (typically 1 byte), and using `bool` implies that the true or false value is significant, which may not be the case for signaling.
+   - **`chan int`:** Similarly, using an integer channel requires memory allocation and might imply that the actual integer value has some meaning, which is not the intention in signaling cases.
+   - **`chan struct{}`:** By contrast, `chan struct{}` conveys that the signal itself is what matters, not any particular value. It makes it explicit to anyone reading the code that the presence of a value in the channel is the signal, not the value itself.
+
+5. **Use Cases of `chan struct{}`:**
+   - **Signaling Completion or Stop:** It’s common to use `chan struct{}` to signal the completion of a task or to stop a goroutine. The receiver simply waits for a signal, which indicates it should proceed or terminate.
+   - **Mutex Implementation:** `struct{}` channels are sometimes used in custom mutex implementations or to control access to a shared resource.
+   - **Broadcasting Events:** In some designs, `struct{}` channels can be used to broadcast events to multiple listeners. Since the event data itself isn’t important, only the occurrence of the event, `struct{}` is a natural fit.
+
+### Conclusion
+
+Using `struct{}` in channels is a common idiom in Go for signaling without any data transfer. It leverages the zero-memory footprint of the empty struct type to efficiently manage synchronization and communication in concurrent programs. This approach helps to express the intent of signaling without transferring actual data, thereby adhering to best practices in Go programming.
