@@ -91,3 +91,16 @@ func CheckWebsites(wc WebsiteChecker, urls []string) map[string]bool {
 - **Closure with Parameter**: By defining the anonymous function with a parameter `(u string)` and passing `url` as an argument, each invocation of the goroutine captures its own copy of `url` as `u`. This ensures that the value of `url` at the time the goroutine was created is used within that goroutine.
   
 - **Independent Copies**: Now, each goroutine has its own `u` variable, which is a copy of the `url` at that specific iteration. This prevents the race condition where all goroutines end up using the same `url` value.
+
+---
+
+## Testing HTTP Handlers
+
+> Testing code that uses HTTP is so common that Go has tools in the standard library to help you test it. In the standard library, there is a package called net/http/httptest which enables users to easily create a mock HTTP server  ~Chris James
+
+
+- `http.HandlerFunc` is a type that looks like this: `type HandlerFunc func(ResponseWriter, *Request)`. *All it's really saying is it needs a function that takes a ResponseWriter and a Request, which is not too surprising for an HTTP server.*
+
+- `httptest.NewServer` takes an `http.HandlerFunc`
+
+- `w.WriteHeader(http.StatusOK)` writes an `OK` response back to the caller
