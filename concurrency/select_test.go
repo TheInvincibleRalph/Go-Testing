@@ -13,6 +13,9 @@ func TestRacer(t *testing.T) {
 	slowServer := makeDelayedServer(20 * time.Millisecond)
 	fastServer := makeDelayedServer(0 * time.Millisecond)
 
+	defer slowServer.Close()
+	defer fastServer.Close()
+
 	// Extracting the URLs
 	slowURL := slowServer.URL
 	fastURL := fastServer.URL
@@ -24,8 +27,6 @@ func TestRacer(t *testing.T) {
 		t.Errorf("expected %q got %q", want, got)
 	}
 
-	slowServer.Close()
-	fastServer.Close()
 }
 
 func Racer(a, b string) (winner string) {
