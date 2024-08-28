@@ -147,6 +147,8 @@ Using `struct{}` in channels is a common idiom in Go for signaling without any d
 
 For channels the zero value is `nil` and if you try and send to it with `<-` it will block forever because you cannot send to `nil` channels
 
+---
+
 ## The `select` statement
 
 `select` allows you to wait on multiple channels. The first one to send a value "wins" and the code underneath the `case` is executed.
