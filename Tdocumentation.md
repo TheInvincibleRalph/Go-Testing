@@ -134,3 +134,19 @@ func CheckWebsites(wc WebsiteChecker, urls []string) map[string]bool {
 ### Conclusion
 
 Using `struct{}` in channels is a common idiom in Go for signaling without any data transfer. It leverages the zero-memory footprint of the empty struct type to efficiently manage synchronization and communication in concurrent programs. This approach helps to express the intent of signaling without transferring actual data, thereby adhering to best practices in Go programming.
+
+---
+
+## `make`-ing channels
+
+**Always `make` channels**
+
+ Always use the `make` function when creating a channel; rather than say `var ch chan struct{}`. 
+ 
+ When you use `var` the variable will be initialised with the "zero" value of the type. So for `string` it is `""`, `int` it is 0, etc.
+
+For channels the zero value is `nil` and if you try and send to it with `<-` it will block forever because you cannot send to `nil` channels
+
+## The `select` statement
+
+`select` allows you to wait on multiple channels. The first one to send a value "wins" and the code underneath the `case` is executed.
