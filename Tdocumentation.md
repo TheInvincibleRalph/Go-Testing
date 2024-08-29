@@ -152,3 +152,51 @@ For channels the zero value is `nil` and if you try and send to it with `<-` it 
 ## The `select` statement
 
 `select` allows you to wait on multiple channels. The first one to send a value "wins" and the code underneath the `case` is executed.
+
+---
+
+## What is `interface{}`?
+
+In Go, `interface{}` (pronounced as "empty interface") is a special type that can hold values of any type. It is defined as an interface that has no methods:
+
+### Key Characteristics of `interface{}`
+
+1. **Empty Interface:**
+   - An empty interface does not specify any methods. This means that any type satisfies this interface since it doesn't require the type to implement any specific methods.
+   - It can be thought of as a "catch-all" type, capable of storing values of any data type.
+
+2. **Dynamic Typing:**
+   - While Go is statically typed, `interface{}` allows for a form of dynamic typing. When a value of any type is assigned to an `interface{}` variable, the actual type information is stored alongside the value.
+   - This makes `interface{}` a powerful tool for situations where you need to handle values of unknown or varying types.
+
+### Usage Examples
+
+1. **Storing Any Type of Value:**
+
+   You can use `interface{}` to store any type of value:
+
+   ```go
+   var x interface{}
+   x = 42         // int
+   x = "hello"    // string
+   x = 3.14       // float64
+   x = []int{1, 2, 3} // slice of int
+   ```
+
+### Use Cases
+
+- **Generic Data Structures:** `interface{}` is commonly used in generic data structures like slices and maps where the type of elements may vary.
+  
+- **APIs and Libraries:** Functions that interact with external systems (like databases, network communication, etc.) often use `interface{}` to handle a wide range of input and output types.
+
+- **Decoupling Components:** Using `interface{}` can help in decoupling components, making the code more flexible and easier to test by accepting any type of value.
+
+### Drawbacks
+
+- **Type Safety:** Using `interface{}` means sacrificing some type safety. It's easy to accidentally store or retrieve a value of the wrong type, leading to runtime errors.
+  
+- **Performance:** Operations involving `interface{}` can be slower due to the need for type assertions and dynamic type handling.
+
+> *In Go `any` is an alias for `interface{}`*
+
+---
