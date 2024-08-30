@@ -88,7 +88,7 @@ func walk(x interface{}, fn func(input string)) {
 		}
 
 		if field.Kind() == reflect.Struct {
-			walk(field.Interface(), fn)
+			walk(field.Interface(), fn) //recursively calls walk to handle a struct field
 		}
 	}
 }
