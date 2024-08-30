@@ -77,6 +77,24 @@ func TestWalk(t *testing.T) {
 			},
 			[]string{"London", "Ralph"},
 		},
+
+		{
+			"arrays",
+			[2]Profile{
+				{33, "London"},
+				{34, "Ralph"},
+			},
+			[]string{"London", "Ralph"},
+		},
+
+		{
+			"maps",
+			map[string]string{
+				"Love language": "Go",
+				"Love life":     "BackOps",
+			},
+			[]string{"Go", "BackOps"},
+		},
 	}
 
 	for _, test := range cases {
@@ -98,21 +116,24 @@ func TestWalk(t *testing.T) {
 func walk(x interface{}, fn func(input string)) {
 	val := getValue(x)
 
-	if val.Kind() == reflect.Slice {
-		for i := 0; i < val.Len(); i++ {
-			walk(val.Index(i).Interface(), fn)
-		}
-		return
+	walkValue := func(value reflect.Value) {
+		walk(value.Interface(), fn) // recursively calls walk to handle a struct or slice or array field, also the value.Interface() converts the reflect.Value back to an interface{}
 	}
 
-	for i := 0; i < val.NumField(); i++ {
-		field := val.Field(i)
-
-		switch field.Kind() {
-		case reflect.String:
-			fn(field.String())
-		case reflect.Struct:
-			walk(field.Interface(), fn) //recursively calls walk to handle a struct field, also field.Interface() converts the reflect.Value back to an interface{}
+	switch val.Kind() {
+	case reflect.String:
+		fn(val.String())
+	case reflect.Struct:
+		for i := 0; i < val.NumField(); i++ {
+			walkValue(val.Field(i))
+		}
+	case reflect.Slice, reflect.Array:
+		for i := 0; i < val.Len(); i++ {
+			walkValue(val.Field(i))
+		}
+	case reflect.Map:
+		for _, key := range val.MapKeys() {
+			walkValue(val.MapIndex(key))
 		}
 	}
 }
