@@ -144,6 +144,23 @@ func TestWalk(t *testing.T) {
 				t.Errorf("expected %v got %v", want, got)
 			}
 		})
+
+		t.Run("with function", func(t *testing.T) {
+			aFunction := func() (Profile, Profile) {
+				return Profile{33, "Berlin"}, Profile{34, "Croatia"}
+			}
+
+			var got []string
+			want := []string{"Berlin", "Croatia"}
+
+			walk(aFunction, func(input string) {
+				got = append(got, input)
+			})
+
+			if !reflect.DeepEqual(got, want) {
+				t.Errorf("expected %v got %v", want, got)
+			}
+		})
 	}
 }
 
@@ -179,6 +196,11 @@ func walk(x interface{}, fn func(input string)) {
 			} else {
 				break
 			}
+		}
+	case reflect.Func:
+		valFnResult := val.Call(nil)
+		for _, res := range valFnResult {
+			walkValue(res)
 		}
 	}
 }
