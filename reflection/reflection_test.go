@@ -61,7 +61,7 @@ func TestWalk(t *testing.T) {
 		},
 
 		{
-			"pointersnto things",
+			"pointers to things",
 			&Person{
 				"Chris",
 				Profile{33, "London"},
@@ -108,6 +108,42 @@ func TestWalk(t *testing.T) {
 				t.Errorf("expected %v got %v", test.ExpectedCalls, got)
 			}
 		})
+
+		t.Run("with maps", func(t *testing.T) {
+			aMap := map[string]string{
+				"Love language": "Go",
+				"Love life":     "BackOps",
+			}
+
+			var got []string
+			walk(aMap, func(input string) {
+				got = append(got, input)
+			})
+
+			assertContains(t, got, "Go")
+			assertContains(t, got, "BackOps")
+		})
+
+		t.Run("with channels", func(t *testing.T) {
+			aChannel := make(chan Profile)
+
+			go func() {
+				aChannel <- Profile{34, "Berlin"}
+				aChannel <- Profile{33, "Croatia"}
+				close(aChannel)
+			}()
+
+			var got []string
+			want := []string{"Berlin", "Croatia"}
+
+			walk(aChannel, func(input string) {
+				got = append(got, input)
+			})
+
+			if !reflect.DeepEqual(got, want) {
+				t.Errorf("expected %v got %v", want, got)
+			}
+		})
 	}
 }
 
@@ -129,11 +165,20 @@ func walk(x interface{}, fn func(input string)) {
 		}
 	case reflect.Slice, reflect.Array:
 		for i := 0; i < val.Len(); i++ {
-			walkValue(val.Field(i))
+			walkValue(val.Index(i))
 		}
 	case reflect.Map:
 		for _, key := range val.MapKeys() {
 			walkValue(val.MapIndex(key))
+		}
+	case reflect.Chan:
+		for {
+			v, ok := val.Recv()
+			if ok {
+				walkValue(v)
+			} else {
+				break
+			}
 		}
 	}
 }
@@ -146,6 +191,19 @@ func getValue(x interface{}) reflect.Value {
 	}
 
 	return val
+}
+
+func assertContains(t testing.TB, lovestack []string, love string) {
+	t.Helper()
+	contains := false
+	for _, x := range lovestack {
+		if x == love {
+			contains = true
+		}
+	}
+	if !contains {
+		t.Errorf("expected %v to contain %q but it didn't", lovestack, love)
+	}
 }
 
 /*
