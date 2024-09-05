@@ -200,3 +200,92 @@ In Go, `interface{}` (pronounced as "empty interface") is a special type that ca
 > *In Go `any` is an alias for `interface{}`*
 
 ---
+
+## Context
+
+A **context** in Go is a powerful concept used to manage and control the lifecycle of operations, typically within concurrent or distributed systems like HTTP requests, database queries, or goroutines. It helps manage things like **timeouts**, **deadlines**, and **cancellations**. The context allows passing request-scoped values, cancellation signals, and timeouts between function calls.
+
+### Key Uses of Context:
+1. **Cancellation**: A context can be cancelled, which allows you to stop or clean up operations early, especially useful when a user aborts an HTTP request.
+2. **Timeouts**: You can set timeouts or deadlines for operations to ensure that long-running tasks are stopped after a certain amount of time.
+3. **Request-scoped Data**: You can pass additional data, like user authentication details, that can be accessed by downstream functions.
+
+### How it works:
+- **Context is passed down a call chain**: Context is usually passed as the first argument in functions that perform operations like handling HTTP requests, making database queries, or starting goroutines.
+- **Propagation of cancellation or timeout**: When the parent context is cancelled or reaches its timeout, it propagates this signal to all functions that share this context, allowing them to stop their work.
+
+---
+
+### Types of Contexts in Go:
+
+1. **`context.Background()`**: This is the root context. It's typically used when no higher context is available. It's commonly used to start a top-level request or process.
+   
+   ```go
+   ctx := context.Background()
+   ```
+
+2. **`context.TODO()`**: This is a placeholder when you are unsure about which context to use. It's often used during development and testing.
+
+   ```go
+   ctx := context.TODO()
+   ```
+
+3. **`context.WithCancel(parent)`**: This creates a derived context from the parent, and the `cancel()` function is used to signal cancellation to the child context.
+
+   ```go
+   ctx, cancel := context.WithCancel(parentCtx)
+   ```
+
+4. **`context.WithTimeout(parent, timeout)`**: This creates a context that automatically cancels after the specified timeout duration. It helps to avoid long-running operations.
+
+   ```go
+   ctx, cancel := context.WithTimeout(parentCtx, 5*time.Second)
+   ```
+
+5. **`context.WithDeadline(parent, time)`**: Similar to `WithTimeout`, but you specify an exact point in time for the cancellation to occur.
+
+   ```go
+   ctx, cancel := context.WithDeadline(parentCtx, time.Now().Add(5*time.Second))
+   ```
+
+---
+
+### Example: Cancellation with Context
+
+Imagine an HTTP server handling a request. If the client cancels the request (e.g., closes their browser), the server should stop processing that request. Using a context, you can detect that the request was cancelled and stop the work early.
+
+```go
+func handleRequest(w http.ResponseWriter, r *http.Request) {
+    ctx := r.Context() // Get context from the request
+
+    select {
+    case <-time.After(10 * time.Second):
+        fmt.Fprintln(w, "Processed Request")
+    case <-ctx.Done(): // Check if context is cancelled
+        fmt.Fprintln(w, "Request was cancelled")
+    }
+}
+```
+
+In this example:
+- **`ctx.Done()`** listens for a cancellation event, and if the context is cancelled (such as if the client cancels the request), the server responds accordingly.
+
+---
+
+### Why is Context Important?
+
+1. **Graceful Handling of Operations**: It allows for graceful cancellation of tasks, making sure resources are not wasted on abandoned or long-running tasks.
+2. **Concurrency**: Context works well in concurrent environments like Go, where multiple goroutines may be running operations, and you need a way to control their lifecycle.
+3. **Timeouts and Deadlines**: Setting timeouts or deadlines ensures that operations don’t block indefinitely.
+
+By using context, you can make your code more efficient, responsive, and resilient to errors or unexpected events like user cancellations or timeouts.
+
+The `context.Context` interface looks like this: 
+```go
+type Context interface {
+    Deadline() (deadline time.Time, ok bool)
+    Done() <-chan struct{}
+    Err() error
+    Value(key interface{}) interface{}
+}
+```
